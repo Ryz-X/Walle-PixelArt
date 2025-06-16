@@ -1,0 +1,11 @@
+C:\Users\vento\source\repos\WalleUI\Interpreter\bin\Debug\net9.0\Interpreter.deps.json
+C:\Users\vento\source\repos\WalleUI\Interpreter\bin\Debug\net9.0\Interpreter.dll
+C:\Users\vento\source\repos\WalleUI\Interpreter\bin\Debug\net9.0\Interpreter.pdb
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.AssemblyInfoInputs.cache
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.AssemblyInfo.cs
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.csproj.CoreCompileInputs.cache
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.dll
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\refint\Interpreter.dll
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.pdb
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\ref\Interpreter.dll

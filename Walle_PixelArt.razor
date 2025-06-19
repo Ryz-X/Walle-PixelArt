@@ -1,0 +1,326 @@
+﻿@page "/"
+@using Interpreter.Lexer
+@using Interpreter.Errores
+@using Interpreter.ASTNodes
+@using Interpreter.Parser
+@using Interpreter.Interprete
+@using System.Drawing
+
+
+
+<PageTitle>Walle PixelArt</PageTitle>
+
+<h1>Walle-PixelArt</h1>
+
+Welcome to your new app.
+
+<p>
+    <br />
+</p>
+
+<! -- ResizeCanvas __ >
+<div>
+    <label for="canvasSize">Canvas Size (N x N):</label>
+    <input type="number" id="canvasSize" @bind="NewCanvasSize" />
+    <button @onclick="ResizeCanvas">Resize Canvas</button>
+</div>
+
+
+<! -- ChangeScale __ >
+<label>Escala:</label>
+
+<input @onclick="CScaleS" type="radio" name="Scale" value="Small" />Small
+<input @onclick="CScaleN" type="radio" name="Scale" value="Normal" />Normal
+<input @onclick="CScaleB" type="radio" name="Scale" value="Big" />Big
+<input @onclick="WScale" type="radio" name="Scale" value="Without_Scale" />Without_Scale
+
+
+<! -- WhiteSpace __ >
+<p>
+    <br />
+    <br />
+</p>
+
+
+<! -- Canvas __ >
+<div style="border: 1px solid black; display: inline-block;">
+    @for (int y = 0; y < CanvasHeight; y++)
+    {
+        <div style="display: flex;">
+            @for (int x = 0; x < CanvasWidth; x++)
+            {
+                <div style="width: @PixelHeight ; height: @PixelHeight ; border: 1px solid #eee; background-color: @GetPixelColor(x, y);"></div>
+            }
+        </div>
+    }
+</div>
+
+
+<p>
+    <br />
+</p>
+
+
+<! -- Clear Buttom __ >
+<div>
+    <button @onclick="ClearString">Clear Editor</button>
+    <button @onclick="ExecuteCode">Code Execute</button>
+</div>
+
+
+<p>
+    <br />
+</p>
+
+<! -- Editor __ >
+<div style="display: flex;">
+    <div style="width: 30px; text-align: right; padding-right: 5px; color: gray;">
+        @for (int i = 1; i <= _code.Split('\n').Length; i++)
+        {
+            <div>@i</div>
+        }
+    </div>
+    <textarea @bind="_code" @bind:event="oninput" style="flex-grow: 1; height: 400px; font-family: monospace;"></textarea>
+</div>
+
+
+<p>
+    <br />
+    <br />
+</p>
+
+
+<! -- Load Buttom __ >
+<label for="fileInput">Load .pw file:</label>
+<InputFile id="fileInput" OnChange="LoadCodeFromFile" accept=".pw" />
+
+
+<! -- Save Buttom __ >
+<button @onclick="SaveCodeToFile">Save Code</button>
+@inject IJSRuntime JSRuntime
+
+
+<p>
+    <br />
+    <br />
+</p>
+
+
+
+<! -- Errors __ >
+<div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div style="color: red; font-weight: bold;">Error: @_errorMessage</div>
+    }
+    else
+    {
+        <div style="color: gray; font-weight: bold;">Error: None</div>
+    }
+
+    @if (_runtimeErrors.Any())
+    {
+        <div style="color: darkorange; font-weight: bold;">Runtime Errors:</div>
+        <ul>
+            @foreach (var error in _runtimeErrors)
+            {
+                <li style="color: darkorange;">@error</li>
+            }
+        </ul>
+    }
+</div>
+
+
+<p>
+    <br />
+    <br />
+    <br />
+</p>
+
+
+
+
+
+
+@code {
+
+    //String Fuente
+    private string _code = "Spawn(0,0)\nColor(\"Red\")\nDrawLine(1,0,5)";
+
+    //Canvas
+    private int NewCanvasSize = 50; // Default size
+    private int CanvasWidth = 50;
+    private int CanvasHeight = 50;
+
+    private int MaxPixel = 750;
+    private string PixelHeight = "15px";
+    private bool WoutScale = false;
+
+    private string[,] _pixels;
+    private Color[,] _canvas;
+
+    protected override void OnInitialized()
+    {
+        InitializeCanvas(CanvasWidth, CanvasHeight);
+    }
+
+    private void InitializeCanvas(int width, int height)
+    {
+        _pixels = new string[width, height];
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                _pixels[x, y] = "white";
+            }
+        }
+    }
+
+    private string GetPixelColor(int x, int y)
+    {
+        return _pixels[x, y];
+    }
+
+    public void SetPixelColor(int x, int y, string color)
+    {
+        if (x >= 0 && x < CanvasWidth && y >= 0 && y < CanvasHeight)
+        {
+            _pixels[x, y] = color;
+            StateHasChanged(); // Notify Blazor to re-render the UI
+        }
+    }
+
+    //Resize
+
+    private void ResizeCanvas()
+    {
+        CanvasWidth = NewCanvasSize;
+        CanvasHeight = NewCanvasSize;
+
+        if(!WoutScale)
+        {
+            float scale = MaxPixel / CanvasHeight;
+            PixelHeight = scale.ToString() + "px";
+        }
+        else
+        {
+            PixelHeight = "10px";
+        }
+
+        InitializeCanvas(CanvasWidth, CanvasHeight); // Re-initialize to clear and set to white
+    }
+
+    //Scale
+    protected void CScaleS()
+    {
+        MaxPixel = 500;
+        WoutScale = false;
+        ResizeCanvas();
+    }
+
+    protected void CScaleN()
+    {
+        MaxPixel = 750;
+        WoutScale = false;
+        ResizeCanvas();
+    }
+
+    protected void CScaleB()
+    {
+        MaxPixel = 1000;
+        WoutScale = false;
+        ResizeCanvas();
+    }
+
+    protected void WScale()
+    {
+        WoutScale = true;
+        ResizeCanvas();
+    }
+
+    private void ClearString()
+    {
+        _code = "";
+    }
+
+
+    //Load
+    private async Task LoadCodeFromFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+
+            _code = await reader.ReadToEndAsync();
+
+            StateHasChanged(); // Update the UI to show the loaded code
+        }
+    }
+
+    //Save
+    private async Task SaveCodeToFile()
+    {
+        var fileName = "my_pixel_art.pw";
+        var fileContent = _code; // The content from your editor
+
+        await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, fileContent);
+    }
+
+    //Errors
+
+    private string _errorMessage;
+    private List<string> _runtimeErrors = new List<string>();
+
+    //Execution
+    private void ExecuteCode()
+    {
+        _errorMessage = string.Empty;
+        ErrorList.errors = new List<CompilingError>();
+        _runtimeErrors.Clear();
+
+
+        //Proceso del interprete
+        Lexer lexer = new Lexer(_code);
+        IEnumerable<Token> tokens = lexer.Tokenize();
+        Parser parser = new Parser(tokens);
+        ProgramNode statements = parser.Parse();
+        Interpreter interpreter = new Interpreter(statements, CanvasWidth);
+        interpreter.Execute();
+        _canvas = interpreter.GetCanvasState();
+
+        for (int i = 0; i < CanvasWidth; i++)
+        {
+            for (int j = 0; j < CanvasHeight; j++)
+            {
+                if (_canvas[i, j] == Color.Red) { _pixels[i, j] = "red"; }
+                else
+                if (_canvas[i, j] == Color.Blue) { _pixels[i, j] = "blue"; }
+                else
+                if (_canvas[i, j] == Color.Green) { _pixels[i, j] = "green"; }
+                else
+                if (_canvas[i, j] == Color.Yellow) { _pixels[i, j] = "yellow"; }
+                else
+                if (_canvas[i, j] == Color.Orange) { _pixels[i, j] = "orange"; }
+                else
+                if (_canvas[i, j] == Color.Purple) { _pixels[i, j] = "purple"; }
+                else
+                if (_canvas[i, j] == Color.Black) { _pixels[i, j] = "black"; }
+                else
+                if (_canvas[i, j] == Color.White) { _pixels[i, j] = "white"; }
+                else
+                { _pixels[i, j] = "transparent"; }
+            }
+        }
+
+        
+        if (ErrorList.errors.Count > 0)
+        {
+            _errorMessage = $"It is {ErrorList.errors.Count} Errors";
+            _runtimeErrors = ErrorList.errors.Select(args => $"{args.Code.ToString()} Error: {args.Argument} {args.Location.line}").ToList();
+        }
+
+    }
+}

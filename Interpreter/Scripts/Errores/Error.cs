@@ -29,6 +29,7 @@ namespace Interpreter.Errores
         Expected,
         Invalid,
         ExecusionTime,
+
         Unknown,
     }
 

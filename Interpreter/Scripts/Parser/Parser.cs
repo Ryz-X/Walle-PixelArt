@@ -22,17 +22,19 @@ namespace Interpreter.Parser
             _currentToken = _tokens.Current;
         }
 
-        private void Eat(TokenType expectedType)
+        private bool Eat(TokenType expectedType)
         {
             if (_currentToken.Type == expectedType)
             {
                 _tokens.MoveNext();
                 _currentToken = _tokens.Current;
+                return true;
             }
             else
             {
                 ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.ExecusionTime, "Unexpected TokenType at line"));
             }
+            return false;
         }
 
         public ProgramNode Parse()
@@ -48,95 +50,152 @@ namespace Interpreter.Parser
                     {
                         // Parse Spawn command
                         Eat(TokenType.Keyword); // Eat "Spawn"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression x = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool b = Eat(TokenType.Coma); // Eat ","
                         Expression y = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new SpawnCommand(x, y));
+                        bool c = Eat(TokenType.Right_Parentesis); // Eat ")"
+
+                        if (a && b && c && x != null && y != null)
+                        {
+                            program.Statements.Add(new SpawnCommand(x, y));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Spawn"));
+                        }
+                            
                     }
                     else if (_currentToken.Value == Keys.Color.ToString())
                     {
                         // Parse Color command
                         Eat(TokenType.Keyword); // Eat "Color"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression color = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new ColorCommand(color));
+                        bool b = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && color != null)
+                        {
+                            program.Statements.Add(new ColorCommand(color));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Color"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.Size.ToString())
                     {
                         Eat(TokenType.Keyword); // Eat "Size"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "(
                         Expression size = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new SizeCommand(size));
+                        bool b = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && size != null)
+                        {
+                            program.Statements.Add(new SizeCommand(size));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Size"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.DrawLine.ToString())
                     {
                         Eat(TokenType.Keyword); // Eat "DrawLine"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression dirx = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool b = Eat(TokenType.Coma); // Eat ","
                         Expression diry = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool c = Eat(TokenType.Coma); // Eat ","
                         Expression distance = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new DrawLineCommand(dirx, diry, distance));
+                        bool d = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && c && d && dirx != null && diry != null && distance != null)
+                        {
+                            program.Statements.Add(new DrawLineCommand(dirx, diry, distance));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Drawline"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.DrawCircle.ToString())
                     {
                         Eat(TokenType.Keyword); // Eat "DrawCircle"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression dirx = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool b = Eat(TokenType.Coma); // Eat ","
                         Expression diry = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool c = Eat(TokenType.Coma); // Eat ","
                         Expression radius = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new DrawCircleCommand(dirx, diry, radius));
+                        bool d = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && c && d && dirx != null && diry != null && radius != null)
+                        {
+                            program.Statements.Add(new DrawCircleCommand(dirx, diry, radius));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of DrawCircle"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.DrawRectangle.ToString())
                     {
                         Eat(TokenType.Keyword); // Eat "DrawRectangle"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression dirx = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool b = Eat(TokenType.Coma); // Eat ","
                         Expression diry = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool c = Eat(TokenType.Coma); // Eat ","
                         Expression distance = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool d = Eat(TokenType.Coma); // Eat ","
                         Expression width = ParseExpression();
-                        Eat(TokenType.Coma); // Eat ","
+                        bool e = Eat(TokenType.Coma); // Eat ","
                         Expression height = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new DrawRectangleCommand(dirx, diry, distance, width, height));
+                        bool f = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && c && d && e && f && dirx != null && diry != null && distance != null && width != null && height != null)
+                        {
+                            program.Statements.Add(new DrawRectangleCommand(dirx, diry, distance, width, height));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of DrawRectangle"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.Fill.ToString())
                     {
                         Eat(TokenType.Keyword);
-                        Eat(TokenType.Left_Parentesis);
-                        Eat(TokenType.Right_Parentesis);
-                        program.Statements.Add(new FillCommand());
+                        bool a = Eat(TokenType.Left_Parentesis);
+                        bool b = Eat(TokenType.Right_Parentesis);
+                        if (a && b)
+                        {
+                            program.Statements.Add(new FillCommand());
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Fill"));
+                        }
                     }
                     else if (_currentToken.Value == Keys.GoTo.ToString())
                     {
                         Eat(TokenType.Keyword); // Eat "Goto"
-                        Eat(TokenType.Left_Clasp); // Eat "["
+                        bool a = Eat(TokenType.Left_Clasp); // Eat "["
                         string labelname = _currentToken.Value;
-                        Eat(TokenType.Identifier);  // Eat label
-                        Eat(TokenType.Right_Clasp); // Eat "]"
-                        Eat(TokenType.Left_Parentesis); // Eat "("
+                        bool b = Eat(TokenType.Identifier);  // Eat label
+                        bool c = Eat(TokenType.Right_Clasp); // Eat "]"
+                        bool d = Eat(TokenType.Left_Parentesis); // Eat "("
                         Expression condition = ParseExpression();
-                        Eat(TokenType.Right_Parentesis); // Eat ")"
-                        program.Statements.Add(new GoToStatement(labelname, condition));
+                        bool e = Eat(TokenType.Right_Parentesis); // Eat ")"
+                        if (a && b && c && d && e)
+                        {
+                            program.Statements.Add(new GoToStatement(labelname, condition));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of GoTo"));
+                        }
                     }
-
-
-                    // ... handle other commands
-                
-                
-                
+                    else
+                    {
+                        ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.ExecusionTime, "Keyword not defined at line"));
+                    }
                 
                 }
                 else if (_currentToken.Type == TokenType.Identifier)
@@ -146,12 +205,19 @@ namespace Interpreter.Parser
                     _tokens.MoveNext(); // Move past identifier
                     _currentToken = _tokens.Current;
 
-                    if (_currentToken.Type == TokenType.Operator && _currentToken.Value == "<-")
+                    if (_currentToken.Type == TokenType.Operator && (_currentToken.Value == "<-" || _currentToken.Value == "="))
                     {
                         // It's an assignment
                         Eat(TokenType.Operator); // Eat "<-"
                         Expression expr = ParseExpression();
-                        program.Statements.Add(new AssignmentStatement(identifier, expr));
+                        if (expr != null)
+                        {
+                            program.Statements.Add(new AssignmentStatement(identifier, expr));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "No value is asignate"));
+                        }
                     }
                     else if (_currentToken.Type == TokenType.NewLine || _currentToken.Type == TokenType.EOF)
                     {
@@ -161,7 +227,6 @@ namespace Interpreter.Parser
                     else
                     {
                         ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} after identifier {identifier} at line"));
-                        Eat(_currentToken.Type);
                     }
                 }
                 else if (_currentToken.Type == TokenType.NewLine)
@@ -199,17 +264,31 @@ namespace Interpreter.Parser
 
         private Expression ParseComparison()
         {
+            Expression expr = ParseComparison1();
+
+            while (_currentToken.Type == TokenType.Operator && (
+                   _currentToken.Value == "==" || _currentToken.Value == "!=" ))
+            {
+                string op = _currentToken.Value;
+                Eat(TokenType.Operator);
+                Expression right = ParseComparison1();
+                expr = new BinEqualOpExpression(expr, op, right);
+            }
+            return expr;
+        }
+
+        private Expression ParseComparison1()
+        {
             Expression expr = ParseAdditive();
 
             while (_currentToken.Type == TokenType.Operator && (
-                   _currentToken.Value == "==" || _currentToken.Value == ">=" ||
-                   _currentToken.Value == "<=" || _currentToken.Value == ">" ||
-                   _currentToken.Value == "<"))
+                   _currentToken.Value == ">=" || _currentToken.Value == "<=" ||
+                   _currentToken.Value == ">" || _currentToken.Value == "<"))
             {
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseAdditive();
-                expr = new BinaryOperationExpression(expr, op, right);
+                expr = new BinCompExpression(expr, op, right);
             }
             return expr;
         }
@@ -222,7 +301,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseMultiplicative();
-                expr = new BinaryOperationExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right);
             }
             return expr;
         }
@@ -235,7 +314,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseMultiplicative2();
-                expr = new BinaryOperationExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right);
             }
             return expr;
         }
@@ -248,7 +327,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseNegative();
-                expr = new BinaryOperationExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right);
             }
             return expr;
         }
@@ -259,7 +338,7 @@ namespace Interpreter.Parser
             {
                 Eat(TokenType.Operator);
                 Expression expr = ParseOposite();
-                return new UnaryOperationExpression(expr, "~");
+                return new UnaryAritmeticOpExpression(expr, "~");
             }
             else
             {
@@ -274,7 +353,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression expr = ParseParentesis();
-                return new UnaryOperationExpression(expr, op);
+                return new UnaryBooleanOpExpression(expr, op);
             }
             else
             {

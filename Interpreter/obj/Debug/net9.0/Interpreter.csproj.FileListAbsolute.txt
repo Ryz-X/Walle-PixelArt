@@ -9,3 +9,4 @@ C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.dll
 C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\refint\Interpreter.dll
 C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.pdb
 C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\ref\Interpreter.dll
+C:\Users\vento\source\repos\WalleUI\Interpreter\obj\Debug\net9.0\Interpreter.sourcelink.json

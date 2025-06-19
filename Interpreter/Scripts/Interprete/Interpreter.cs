@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Interpreter.ASTNodes;
 using Interpreter.Errores;
+using Interpreter.Scripts;
 
 namespace Interpreter.Interprete
 {
@@ -22,8 +23,6 @@ namespace Interpreter.Interprete
         private int _wallEX, _wallEY;
         private Color _brushColor;
         private int _brushSize;
-        private Dictionary<string, object> _variables;
-        private Dictionary<string, int> _labels; // Maps label name to statement index
 
         public Interpreter(ProgramNode program, int initialCanvasSize)
         {
@@ -32,12 +31,11 @@ namespace Interpreter.Interprete
             _canvasHeight = initialCanvasSize;
             _canvas = new Color[_canvasWidth, _canvasHeight];
             ClearCanvas();
+            LocalMemory.InicializeMemory();
             _wallEX = 0;
             _wallEY = 0;
             _brushColor = Color.Transparent; // Default color 
-            _brushSize = 1; // Default size 
-            _variables = new Dictionary<string, object>();
-            _labels = new Dictionary<string, int>();
+            _brushSize = 1; // Default size
             PreprocessLabels(); // Populate _labels dictionary
         }
 
@@ -47,13 +45,13 @@ namespace Interpreter.Interprete
             {
                 if (_program.Statements[i] is LabelStatement labelNode)
                 {
-                    if (_labels.ContainsKey(labelNode.LabelName))
+                    if (LocalMemory._labels.ContainsKey(labelNode.LabelName))
                     {
                         ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Semantic Error, Duplicate label {labelNode.LabelName}."));
                     }
                     else
                     {
-                        _labels[labelNode.LabelName] = i;
+                        LocalMemory._labels[labelNode.LabelName] = i;
                     }
                 }
             }
@@ -98,15 +96,22 @@ namespace Interpreter.Interprete
                         int x = (int)EvaluateExpression(spawnCmd.X);
                         int y = (int)EvaluateExpression(spawnCmd.Y);
 
-                        if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
+                        if (x != null && y != null)
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Initial Wall-E position ({x},{y}) is out of canvas bounds."));
+                            if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Initial Wall-E position ({x},{y}) is out of canvas bounds."));
+                            }
+                            else
+                            {
+                                _wallEX = x;
+                                _wallEY = y;
+                                spawnFound = true;
+                            }
                         }
                         else
                         {
-                            _wallEX = x;
-                            _wallEY = y;
-                            spawnFound = true;
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Semantic Error: Parameters are not corrects."));
                         }
                     }
                     else
@@ -168,11 +173,11 @@ namespace Interpreter.Interprete
                     else if (statement is AssignmentStatement assignStmt)
                     {
                         object value = EvaluateExpression(assignStmt.Expression);
-                        _variables[assignStmt.VariableName] = value;
+                        LocalMemory._variables[assignStmt.VariableName] = value;
                     }
                     else if (statement is GoToStatement gotoStmt)
                     {
-                        if (!_labels.ContainsKey(gotoStmt.LabelName))
+                        if (!LocalMemory._labels.ContainsKey(gotoStmt.LabelName))
                         {
                             ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Compilation Error: Label '{gotoStmt.LabelName}' not found."));
                         }
@@ -181,7 +186,7 @@ namespace Interpreter.Interprete
                             bool conditionResult = (bool)EvaluateExpression(gotoStmt.Condition);
                             if (conditionResult)
                             {
-                                i = _labels[gotoStmt.LabelName]; // Jump to label
+                                i = LocalMemory._labels[gotoStmt.LabelName]; // Jump to label
                             }
                         }
                     }
@@ -206,49 +211,63 @@ namespace Interpreter.Interprete
             }
             else if (expression is VariableExpression varExpr)
             {
-                if (_variables.TryGetValue(varExpr.VariableName, out object value))
+                if (LocalMemory._variables.TryGetValue(varExpr.VariableName, out object value))
                 {
                     return value;
                 }
                 ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Variable '{varExpr.VariableName}' not defined."));
                 return null;
             }
-            else if (expression is BinaryOperationExpression binaryOp)
+            else if (expression is BinaryOp binaryOp)
             {
                 object left = EvaluateExpression(binaryOp.Left);
                 object right = EvaluateExpression(binaryOp.Right);
 
-                // Implement arithmetic and boolean operations based on operator and operand types
-                switch (binaryOp.Operator)
+                if (left == null || right == null) { return null; }
+
+                bool CheckSemantic = binaryOp.CheckSemantic();
+
+                if (CheckSemantic)
                 {
-                    case "+": return (dynamic)left + (dynamic)right;
-                    case "-": return (dynamic)left - (dynamic)right;
-                    case "*": return (dynamic)left * (dynamic)right;
-                    case "/":
-                        if ((dynamic)right == 0)
-                        {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Division by zero."));
-                        }
-                        else
-                        {
-                            return (dynamic)left / (dynamic)right;
-                        } break;
+                    switch (binaryOp.Operator)
+                    {
+                        case "+": return (dynamic)left + (dynamic)right;
+                        case "-": return (dynamic)left - (dynamic)right;
+                        case "*": return (int)((dynamic)left * (dynamic)right);
+                        case "/":
+                            if ((dynamic)right == 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Division by zero."));
+                            }
+                            else
+                            {
+                                return (int)((dynamic)left / (dynamic)right);
+                            }
+                            break;
 
-                    case "**": return Math.Pow((dynamic)left, (dynamic)right);
-                    case "%": return (dynamic)left % (dynamic)right;
-                    case "==": return Equals(left, right);
-                    case ">=": return (dynamic)left >= (dynamic)right;
-                    case "<=": return (dynamic)left <= (dynamic)right;
-                    case ">": return (dynamic)left > (dynamic)right;
-                    case "<": return (dynamic)left < (dynamic)right;
-                    case "&&": return (bool)left && (bool)right;
-                    case "||": return (bool)left || (bool)right;
+                        case "**": return (int)(Math.Pow((dynamic)left, (dynamic)right));
+                        case "==": return Equals(left, right);
+                        case ">=": return (dynamic)left >= (dynamic)right;
+                        case "<=": return (dynamic)left <= (dynamic)right;
+                        case ">": return (dynamic)left > (dynamic)right;
+                        case "<": return (dynamic)left < (dynamic)right;
+                        case "&&": return (bool)left && (bool)right;
+                        case "||": return (bool)left || (bool)right;
 
-                    default:
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown operator: {binaryOp.Operator}"));
-                        break;
+                        default:
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown operator: {binaryOp.Operator}"));
+                            return null;
+                    }
+
                 }
-            }else if (expression is UnaryOperationExpression unaryop)
+                else
+                {
+                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.Invalid, $"Unknown operator: {binaryOp.Operator}"));
+                    return null;
+                }
+
+            }
+            else if (expression is UnaryOp unaryop)
             {
                 object right = EvaluateExpression(unaryop.Right);
 
@@ -342,7 +361,7 @@ namespace Interpreter.Interprete
                 case "white": return Color.White;
                 case "transparent": return Color.Transparent;
                 default:
-                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Semantic Error: Unknown color '{colorName}'."));
+                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Semantic Error: Unknown color '{colorName}', Transparent set as default."));
                     break;
             }
             return Color.Transparent;
@@ -531,9 +550,11 @@ namespace Interpreter.Interprete
 
             int count = 0;
             int p = 0;
-            while(count == p)
+            int[,] map = Map(remplacecolor);
+
+            while (count == p)
             {
-                p = Lee(p, Map(remplacecolor), targetColor);
+                p = Lee(p, map, targetColor);
                 count++;
             }
         }
@@ -550,6 +571,7 @@ namespace Interpreter.Interprete
                 }
             }
             map[_wallEX, _wallEY] = 0;
+            _canvas[_wallEX, _wallEY] = _brushColor;
             return map;
         }
 
@@ -559,8 +581,8 @@ namespace Interpreter.Interprete
 
             int[,] dir =
             {
-                { 0, 1, 1, 1, 0, -1, -1, -1 }, //x
-                { 1, 1, 0, -1, -1, -1, 0, 1 }  //y
+                { 0, 1, 0, -1 }, //x
+                { 1, 0, -1, 0 }  //y
             };
 
             for (int i = 0; i < map.GetLength(0); i++)
@@ -569,7 +591,7 @@ namespace Interpreter.Interprete
                 {
                     if (map[i, j] == p)
                     {
-                        for(int k = 0; k <= 8; k++)
+                        for(int k = 0; k < dir.GetLength(1); k++)
                         {
                             if(i + dir[0,k] >= 0 && i + dir[0,k] < map.GetLength(0) && j + dir[1,k] >= 0 && j + dir[1,k] < map.GetLength(1))
                             {

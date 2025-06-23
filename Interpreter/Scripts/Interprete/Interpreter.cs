@@ -93,14 +93,26 @@ namespace Interpreter.Interprete
                 {
                     if (statement is SpawnCommand spawnCmd)
                     {
-                        int x = (int)EvaluateExpression(spawnCmd.X);
-                        int y = (int)EvaluateExpression(spawnCmd.Y);
+                        int x = 0;
+                        int y = 0;
+                        bool convert = false;
 
-                        if (x != null && y != null)
+                        try
+                        {
+                            x = (int)EvaluateExpression(spawnCmd.X);
+                            y = (int)EvaluateExpression(spawnCmd.Y);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+
+                        if (convert)
                         {
                             if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Initial Wall-E position ({x},{y}) is out of canvas bounds."));
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Initial Wall-E position ({x},{y}) is out of canvas bounds."));
                             }
                             else
                             {
@@ -108,10 +120,6 @@ namespace Interpreter.Interprete
                                 _wallEY = y;
                                 spawnFound = true;
                             }
-                        }
-                        else
-                        {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Semantic Error: Parameters are not corrects."));
                         }
                     }
                     else
@@ -121,50 +129,116 @@ namespace Interpreter.Interprete
                 }
                 else
                 {
-
                     if (statement is SpawnCommand spawnCmd)
                     {
                         ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Is not possible re-initialize Wall-E"));
                     }
                     else if (statement is ColorCommand colorCmd)
                     {
-                        string colorName = (string)EvaluateExpression(colorCmd.Color);
-                        _brushColor = ParseColor(colorName);
+                        string colorName = "";
+                        bool convert = false;
+                        try
+                        {
+                            colorName = (string)EvaluateExpression(colorCmd.Color);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+                        if (convert) { _brushColor = ParseColor(colorName); }
                     }
                     else if (statement is SizeCommand sizeCmd)
                     {
-                        int k = (int)EvaluateExpression(sizeCmd.Size);
-                        if (k <= 0)
+
+                        int k = 0;
+                        bool convert = false;
+                        try
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Brush size must be positive. Received {k}."));
+                            k = (int)EvaluateExpression(sizeCmd.Size);
+                            convert = true;
                         }
-                        else
+                        catch
                         {
-                            _brushSize = k % 2 == 0 ? k - 1 : k;
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+
+                        if (convert)
+                        {
+                            if (k <= 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Brush size must be positive. Received {k}."));
+                            }
+                            else
+                            {
+                                _brushSize = k % 2 == 0 ? k - 1 : k;
+                            }
                         }
                     }
                     else if (statement is DrawLineCommand drawLineCmd)
                     {
-                        int dirX = (int)EvaluateExpression(drawLineCmd.DirX);
-                        int dirY = (int)EvaluateExpression(drawLineCmd.DirY);
-                        int distance = (int)EvaluateExpression(drawLineCmd.Distance);
-                        DrawLine(_wallEX, _wallEY, dirX, dirY, distance);
+                        int dirX = 0;
+                        int dirY = 0;
+                        int distance = 0;
+                        bool convert = false;
+
+                        try
+                        {
+                            dirX = (int)EvaluateExpression(drawLineCmd.DirX);
+                            dirY = (int)EvaluateExpression(drawLineCmd.DirY);
+                            distance = (int)EvaluateExpression(drawLineCmd.Distance);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+                        if (convert) { DrawLine(_wallEX, _wallEY, dirX, dirY, distance); }
                     }
                     else if (statement is DrawCircleCommand drawCircleCmd)
                     {
-                        int dirX = (int)EvaluateExpression(drawCircleCmd.DirX);
-                        int dirY = (int)EvaluateExpression(drawCircleCmd.DirY);
-                        int radius = (int)EvaluateExpression(drawCircleCmd.Radius);
-                        DrawCircle(dirX, dirY, radius);
+                        int dirX = 0;
+                        int dirY = 0;
+                        int radius = 0;
+                        bool convert = false;
+
+                        try
+                        {
+                            dirX = (int)EvaluateExpression(drawCircleCmd.DirX);
+                            dirY = (int)EvaluateExpression(drawCircleCmd.DirY);
+                            radius = (int)EvaluateExpression(drawCircleCmd.Radius);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+                        if (convert) { DrawCircle(dirX, dirY, radius); }
                     }
                     else if (statement is DrawRectangleCommand drawRectangleCmd)
                     {
-                        int dirX = (int)EvaluateExpression(drawRectangleCmd.DirX);
-                        int dirY = (int)EvaluateExpression(drawRectangleCmd.DirY);
-                        int distance = (int)EvaluateExpression(drawRectangleCmd.Distance);
-                        int width = (int)EvaluateExpression(drawRectangleCmd.Width);
-                        int height = (int)EvaluateExpression(drawRectangleCmd.Height);
-                        DrawRectangle(dirX, dirY, distance, width, height);
+
+                        int dirX = 0;
+                        int dirY = 0;
+                        int distance = 0;
+                        int width = 0;
+                        int height = 0;
+                        bool convert = true;
+
+                        try
+                        {
+                            dirX = (int)EvaluateExpression(drawRectangleCmd.DirX);
+                            dirY = (int)EvaluateExpression(drawRectangleCmd.DirY);
+                            distance = (int)EvaluateExpression(drawRectangleCmd.Distance);
+                            width = (int)EvaluateExpression(drawRectangleCmd.Width);
+                            height = (int)EvaluateExpression(drawRectangleCmd.Height);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+                        if (convert) { DrawRectangle(dirX, dirY, distance, width, height); }
                     }
                     else if (statement is FillCommand fillCmd)
                     {
@@ -173,7 +247,16 @@ namespace Interpreter.Interprete
                     else if (statement is AssignmentStatement assignStmt)
                     {
                         object value = EvaluateExpression(assignStmt.Expression);
-                        LocalMemory._variables[assignStmt.VariableName] = value;
+                        bool convert = false;
+                        if (value != null)
+                        {
+                            convert = true;
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Expression are not corrects"));
+                        }
+                        if (convert) { LocalMemory._variables[assignStmt.VariableName] = value; }
                     }
                     else if (statement is GoToStatement gotoStmt)
                     {

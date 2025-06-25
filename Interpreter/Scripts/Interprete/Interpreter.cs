@@ -146,7 +146,7 @@ namespace Interpreter.Interprete
                         {
                             ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
                         }
-                        if (convert) { _brushColor = ParseColor(colorName); }
+                        if (convert && colorName != null) { _brushColor = ParseColor(colorName); }
                     }
                     else if (statement is SizeCommand sizeCmd)
                     {
@@ -188,11 +188,23 @@ namespace Interpreter.Interprete
                             dirY = (int)EvaluateExpression(drawLineCmd.DirY);
                             distance = (int)EvaluateExpression(drawLineCmd.Distance);
                             convert = true;
+
+                            if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                convert = false;
+                            }
+                            if (distance < 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'distance' can not be negative"));
+                                convert = false;
+                            }
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not correct"));
                         }
+
                         if (convert) { DrawLine(_wallEX, _wallEY, dirX, dirY, distance); }
                     }
                     else if (statement is DrawCircleCommand drawCircleCmd)
@@ -208,16 +220,28 @@ namespace Interpreter.Interprete
                             dirY = (int)EvaluateExpression(drawCircleCmd.DirY);
                             radius = (int)EvaluateExpression(drawCircleCmd.Radius);
                             convert = true;
+
+                            if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                convert = false;
+                            }
+
+                            if (radius < 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'radius' can not be negative"));
+                                convert = false;
+                            }
                         }
                         catch
                         {
                             ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
                         }
+
                         if (convert) { DrawCircle(dirX, dirY, radius); }
                     }
                     else if (statement is DrawRectangleCommand drawRectangleCmd)
                     {
-
                         int dirX = 0;
                         int dirY = 0;
                         int distance = 0;
@@ -233,11 +257,30 @@ namespace Interpreter.Interprete
                             width = (int)EvaluateExpression(drawRectangleCmd.Width);
                             height = (int)EvaluateExpression(drawRectangleCmd.Height);
                             convert = true;
+
+                            if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                convert = false;
+                            }
+
+                            if (distance < 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'distance' can not be negative"));
+                                convert = false;
+                            }
+
+                            if (width < 0 || height < 0)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'width' and 'height' can not be negative"));
+                                convert = false;
+                            }
                         }
                         catch
                         {
                             ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
                         }
+
                         if (convert) { DrawRectangle(dirX, dirY, distance, width, height); }
                     }
                     else if (statement is FillCommand fillCmd)
@@ -458,9 +501,14 @@ namespace Interpreter.Interprete
             for (int i = 0; i < distance; i++)
             {
                 SetPixel(currentX, currentY); // Draw the current pixel with brush size
-                currentX += dirX;
-                currentY += dirY;
+                if (currentX + dirX >= 0 && currentY + dirY >= 0 &&
+                    currentX + dirX < _canvasWidth && currentY + dirY < _canvasHeight)
+                {
+                    currentX += dirX;
+                    currentY += dirY;
+                }
             }
+
             SetPixel(currentX, currentY); // Draw the last pixel
             _wallEX = currentX;
             _wallEY = currentY;
@@ -524,14 +572,19 @@ namespace Interpreter.Interprete
                 }
             }
 
-            int MidWidth = width / 2;
-            int MidHeight = height / 2;
+            int LeftMidWidth = (width - 1) / 2;
+            int LeftMidHeight = (height - 1) / 2;
+            int RightMidWidth = (width - 1) / 2;
+            int RightMidHeight = (height - 1) / 2;
 
-            for(int i = -MidWidth-1; i <= MidWidth+1; i++)
+            if (width % 2 == 0) { RightMidWidth++; }
+            if (height % 2 == 0) { RightMidHeight++; }
+
+            for (int i = -LeftMidWidth; i <= RightMidWidth; i++)
             {
-                for(int j = -MidHeight-1; j <= MidHeight+1; j++)
+                for(int j = -LeftMidHeight; j <= RightMidHeight; j++)
                 {
-                    if(i == -MidWidth - 1 || j == -MidHeight - 1 || i == MidWidth + 1 || j == MidHeight + 1)
+                    if(i == -LeftMidWidth || j == -LeftMidHeight || i == RightMidWidth || j == RightMidHeight)
                     {
                         int pixelX = _wallEX + i;
                         int pixelY = _wallEY + j;

@@ -67,6 +67,25 @@ namespace Interpreter.Parser
                         }
                             
                     }
+                    else if (_currentToken.Value == Keys.ReSpawn.ToString())
+                    {
+                        Eat(TokenType.Keyword);
+
+                        bool a = Eat(TokenType.Left_Parentesis); // Eat "("
+                        Expression x = ParseExpression();
+                        bool b = Eat(TokenType.Coma); // Eat ","
+                        Expression y = ParseExpression();
+                        bool c = Eat(TokenType.Right_Parentesis); // Eat ")"
+
+                        if (a && b && c && x != null && y != null)
+                        {
+                            program.Statements.Add(new ReSpawnCommand(x, y));
+                        }
+                        else
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of ReSpawn"));
+                        }
+                    }
                     else if (_currentToken.Value == Keys.Color.ToString())
                     {
                         // Parse Color command

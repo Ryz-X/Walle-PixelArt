@@ -133,6 +133,36 @@ namespace Interpreter.Interprete
                     {
                         ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Is not possible re-initialize Wall-E"));
                     }
+                    else if (statement is ReSpawnCommand respawnCmd)
+                    {
+                        int x = 0;
+                        int y = 0;
+                        bool convert = false;
+
+                        try
+                        {
+                            x = (int)EvaluateExpression(respawnCmd.X);
+                            y = (int)EvaluateExpression(respawnCmd.Y);
+                            convert = true;
+                        }
+                        catch
+                        {
+                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                        }
+
+                        if (convert)
+                        {
+                            if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
+                            {
+                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Wall-E position ({x},{y}) is out of canvas bounds."));
+                            }
+                            else
+                            {
+                                _wallEX = x;
+                                _wallEY = y;
+                            }
+                        }
+                    }
                     else if (statement is ColorCommand colorCmd)
                     {
                         string colorName = "";
@@ -483,7 +513,14 @@ namespace Interpreter.Interprete
                 case "yellow": return Color.Yellow;
                 case "orange": return Color.Orange;
                 case "purple": return Color.Purple;
+                case "pink": return Color.Pink;
+                case "cyan": return Color.Cyan;
+                case "maroon": return Color.Maroon;
+                case "crimson": return Color.Crimson;
+                case "darkblue": return Color.DarkBlue;
+                case "gold": return Color.Gold;
                 case "black": return Color.Black;
+                case "gray": return Color.Gray;
                 case "white": return Color.White;
                 case "transparent": return Color.Transparent;
                 default:

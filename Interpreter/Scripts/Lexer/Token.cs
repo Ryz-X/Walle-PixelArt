@@ -13,7 +13,7 @@ namespace Interpreter.Lexer
 
     public enum Keys
     {
-        Spawn, Color, Size, DrawLine, DrawCircle, DrawRectangle, Fill, GoTo
+        Spawn, ReSpawn, Color, Size, DrawLine, DrawCircle, DrawRectangle, Fill, GoTo
     }
 
     public enum Funtions

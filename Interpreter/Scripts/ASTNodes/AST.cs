@@ -19,7 +19,12 @@ namespace Interpreter.ASTNodes
         public AstNode Y { get; }
         public SpawnCommand(AstNode x, AstNode y) { X = x; Y = y; }
     }
-
+    public class ReSpawnCommand : AstNode
+    {
+        public AstNode X { get; }
+        public AstNode Y { get; }
+        public ReSpawnCommand(AstNode x, AstNode y) { X = x; Y = y; }
+    }
     public class ColorCommand : AstNode
     {
         public AstNode Color { get; }

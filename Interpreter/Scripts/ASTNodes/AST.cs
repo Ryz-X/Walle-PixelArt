@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using Interpreter.Scripts;
 
 namespace Interpreter.ASTNodes
 {
-    public abstract class AstNode { }
+    public abstract class AstNode
+    {
+        public int Line;
+    }
     public class ProgramNode
     {
         public List<AstNode> Statements { get; set; } = new List<AstNode>();
@@ -17,24 +21,24 @@ namespace Interpreter.ASTNodes
     {
         public AstNode X { get; }
         public AstNode Y { get; }
-        public SpawnCommand(AstNode x, AstNode y) { X = x; Y = y; }
+        public SpawnCommand(AstNode x, AstNode y, int line) { X = x; Y = y; Line = line; }
     }
     public class ReSpawnCommand : AstNode
     {
         public AstNode X { get; }
         public AstNode Y { get; }
-        public ReSpawnCommand(AstNode x, AstNode y) { X = x; Y = y; }
+        public ReSpawnCommand(AstNode x, AstNode y, int line) { X = x; Y = y; Line = line; }
     }
     public class ColorCommand : AstNode
     {
         public AstNode Color { get; }
-        public ColorCommand(AstNode color) { Color = color; }
+        public ColorCommand(AstNode color, int line) { Color = color; Line = line; }
     }
 
     public class SizeCommand : AstNode
     {
         public AstNode Size { get; }
-        public SizeCommand(AstNode size) { Size = size; }
+        public SizeCommand(AstNode size, int line) { Size = size; Line = line; }
     }
 
     public class DrawLineCommand : AstNode
@@ -42,11 +46,12 @@ namespace Interpreter.ASTNodes
         public AstNode DirX { get; }
         public AstNode DirY { get; }
         public AstNode Distance { get; }
-        public DrawLineCommand(AstNode dirX, AstNode dirY, AstNode distance)
+        public DrawLineCommand(AstNode dirX, AstNode dirY, AstNode distance, int line)
         {
             DirX = dirX;
             DirY = dirY;
             Distance = distance;
+            Line = line;
         }
     }
 
@@ -55,11 +60,12 @@ namespace Interpreter.ASTNodes
         public AstNode DirX { get; }
         public AstNode DirY { get; }
         public AstNode Radius { get; }
-        public DrawCircleCommand(AstNode dirX, AstNode dirY, AstNode radius)
+        public DrawCircleCommand(AstNode dirX, AstNode dirY, AstNode radius, int line)
         {
             DirX = dirX;
             DirY = dirY;
             Radius = radius;
+            Line = line;
         }
     }
 
@@ -70,36 +76,40 @@ namespace Interpreter.ASTNodes
         public AstNode Distance { get; }
         public AstNode Width { get; }
         public AstNode Height { get; }
-        public DrawRectangleCommand(AstNode dirX, AstNode dirY, AstNode distance, AstNode width, AstNode height)
+        public DrawRectangleCommand(AstNode dirX, AstNode dirY, AstNode distance, AstNode width, AstNode height, int line)
         {
             DirX = dirX;
             DirY = dirY;
             Distance = distance;
             Width = width;
             Height = height;
+            Line = line;
         }
     }
 
-    public class FillCommand : AstNode { }
+    public class FillCommand : AstNode
+    {
+        public FillCommand(int line) { Line = line; }
+    }
 
     public class AssignmentStatement : AstNode
     {
         public string VariableName { get; }
         public AstNode Expression { get; }
-        public AssignmentStatement(string varName, AstNode expr) { VariableName = varName; Expression = expr; }
+        public AssignmentStatement(string varName, AstNode expr, int line) { VariableName = varName; Expression = expr; Line = line; }
     }
 
     public class LabelStatement : AstNode
     {
         public string LabelName { get; }
-        public LabelStatement(string labelName) { LabelName = labelName; }
+        public LabelStatement(string labelName, int line) { LabelName = labelName; Line = line; }
     }
 
     public class GoToStatement : AstNode
     {
         public string LabelName { get; }
         public AstNode Condition { get; }
-        public GoToStatement(string labelName, AstNode condition) { LabelName = labelName; Condition = condition; }
+        public GoToStatement(string labelName, AstNode condition, int line) { LabelName = labelName; Condition = condition; Line = line; }
     }
 
     // Expressions
@@ -113,9 +123,10 @@ namespace Interpreter.ASTNodes
     {
         public T Value { get; }
         public override bool CheckSemantic() => true;
-        public LiteralExpression(T value)
+        public LiteralExpression(T value, int line)
         {
             Value = value;
+            Line = line;
             if (typeof(T) == typeof(int) || typeof(T) == typeof(double)) { Type = ExpressionType.Numeric; }
             else
             if (typeof(T) == typeof(bool)) { Type = ExpressionType.Boolean; }
@@ -176,7 +187,7 @@ namespace Interpreter.ASTNodes
             }
             return check;
         }
-        public VariableExpression(string varName) { VariableName = varName; }
+        public VariableExpression(string varName, int line) { VariableName = varName; Line = line; }
     }
 
     public abstract class Operation : Expression { }
@@ -195,23 +206,24 @@ namespace Interpreter.ASTNodes
 
             return checkLeftExpr && checkRightExpr && BinAOp;
         }
-        public BinaryOp(Expression left, string op, Expression right)
+        public BinaryOp(Expression left, string op, Expression right, int line)
         {
             Left = left;
             Right = right;
             Operator = op;
+            Line = line;
         }
     }
     public class BinAritExpression : BinaryOp
     {
-        public BinAritExpression(Expression left, string op, Expression right) : base(left, op, right)
+        public BinAritExpression(Expression left, string op, Expression right, int line) : base(left, op, right, line)
         {
             Type = ExpressionType.Numeric;
         }
     }
     public class BinCompExpression : BinaryOp
     {
-        public BinCompExpression(Expression left, string op, Expression right) : base(left, op, right)
+        public BinCompExpression(Expression left, string op, Expression right, int line) : base(left, op, right, line)
         {
             Type = ExpressionType.Numeric;
         }
@@ -228,7 +240,7 @@ namespace Interpreter.ASTNodes
 
             return checkLeftExpr && checkRightExpr && BinAOp;
         }
-        public BinEqualOpExpression(Expression left, string op, Expression right) : base(left, op, right) { }
+        public BinEqualOpExpression(Expression left, string op, Expression right, int line) : base(left, op, right, line) { }
     }
 
     public abstract class UnaryOp : Operation
@@ -236,10 +248,11 @@ namespace Interpreter.ASTNodes
         public Expression Right { get; }
         public string Operator { get; }
         public abstract override bool CheckSemantic();
-        public UnaryOp(Expression right, string op)
+        public UnaryOp(Expression right, string op, int line)
         {
             Right = right;
             Operator = op;
+            Line = line;
         }
     }
 
@@ -253,7 +266,7 @@ namespace Interpreter.ASTNodes
             Type = ExpressionType.Numeric;
             return checkExpr && UnaryAOp;
         }
-        public UnaryAritmeticOpExpression(Expression right, string op) : base(right, op) { }
+        public UnaryAritmeticOpExpression(Expression right, string op, int line) : base(right, op, line) { }
     }
 
     public class UnaryBooleanOpExpression : UnaryOp
@@ -265,7 +278,7 @@ namespace Interpreter.ASTNodes
             Type = ExpressionType.Boolean;
             return checkExpr && UnaryAOp;
         }
-        public UnaryBooleanOpExpression(Expression right, string op) : base (right, op) { }
+        public UnaryBooleanOpExpression(Expression right, string op, int line) : base(right, op, line) { }
     }
 
     public class FunctionCallExpression : Expression
@@ -273,7 +286,7 @@ namespace Interpreter.ASTNodes
         public string FunctionName { get; }
         public List<AstNode> Arguments { get; }
         public override bool CheckSemantic() => true;
-        public FunctionCallExpression(string functionName, List<AstNode> args) { FunctionName = functionName; Arguments = args; Type = ExpressionType.Numeric; }
+        public FunctionCallExpression(string functionName, List<AstNode> args, int line) { FunctionName = functionName; Arguments = args; Type = ExpressionType.Numeric; Line = line; }
     }
 
     public enum ExpressionType

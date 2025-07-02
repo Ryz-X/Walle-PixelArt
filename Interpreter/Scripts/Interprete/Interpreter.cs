@@ -47,7 +47,7 @@ namespace Interpreter.Interprete
                 {
                     if (LocalMemory._labels.ContainsKey(labelNode.LabelName))
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Semantic Error, Duplicate label {labelNode.LabelName}."));
+                        ErrorList.errors.Add(new CompilingError( labelNode.Line, ErrorCode.ExecusionTime, $"Duplicate label {labelNode.LabelName}at line:"));
                     }
                     else
                     {
@@ -99,20 +99,20 @@ namespace Interpreter.Interprete
 
                         try
                         {
-                            x = (int)EvaluateExpression(spawnCmd.X);
-                            y = (int)EvaluateExpression(spawnCmd.Y);
+                            x = (int)EvaluateExpression(spawnCmd.X, spawnCmd.Line);
+                            y = (int)EvaluateExpression(spawnCmd.Y, spawnCmd.Line);
                             convert = true;
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( spawnCmd.Line, ErrorCode.ExecusionTime, $"Parameters in Spawn are not corrects at line:"));
                         }
 
                         if (convert)
                         {
                             if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Initial Wall-E position ({x},{y}) is out of canvas bounds."));
+                                ErrorList.errors.Add(new CompilingError( spawnCmd.Line, ErrorCode.Unexpected, $"Initial Wall-E position ({x},{y}) is out of canvas bounds at line:"));
                             }
                             else
                             {
@@ -124,14 +124,14 @@ namespace Interpreter.Interprete
                     }
                     else
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Semantic Error: Every valid code must start with a Spawn command."));
+                        ErrorList.errors.Add(new CompilingError( i, ErrorCode.Unexpected, "Every valid code must start with a Spawn command. line:"));
                     }
                 }
                 else
                 {
                     if (statement is SpawnCommand spawnCmd)
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Runtime Error: Is not possible re-initialize Wall-E"));
+                        ErrorList.errors.Add(new CompilingError(spawnCmd.Line, ErrorCode.ExecusionTime, $"Is not possible re-initialize Wall-E with Spawn. line:"));
                     }
                     else if (statement is ReSpawnCommand respawnCmd)
                     {
@@ -141,20 +141,20 @@ namespace Interpreter.Interprete
 
                         try
                         {
-                            x = (int)EvaluateExpression(respawnCmd.X);
-                            y = (int)EvaluateExpression(respawnCmd.Y);
+                            x = (int)EvaluateExpression(respawnCmd.X, respawnCmd.Line);
+                            y = (int)EvaluateExpression(respawnCmd.Y, respawnCmd.Line);
                             convert = true;
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( respawnCmd.Line, ErrorCode.ExecusionTime, $"Parameters in ReSpawn are not corrects at line:"));
                         }
 
                         if (convert)
                         {
                             if (x < 0 || x >= _canvasWidth || y < 0 || y >= _canvasHeight)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Wall-E position ({x},{y}) is out of canvas bounds."));
+                                ErrorList.errors.Add(new CompilingError( respawnCmd.Line, ErrorCode.Unexpected, $"Wall-E position ({x},{y}) is out of canvas bounds. line:"));
                             }
                             else
                             {
@@ -169,14 +169,14 @@ namespace Interpreter.Interprete
                         bool convert = false;
                         try
                         {
-                            colorName = (string)EvaluateExpression(colorCmd.Color);
+                            colorName = (string)EvaluateExpression(colorCmd.Color, colorCmd.Line);
                             convert = true;
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( colorCmd.Line, ErrorCode.ExecusionTime, $"Parameters in Color are not corrects. line:"));
                         }
-                        if (convert && colorName != null) { _brushColor = ParseColor(colorName); }
+                        if (convert && colorName != null) { _brushColor = ParseColor(colorName, colorCmd.Line); }
                     }
                     else if (statement is SizeCommand sizeCmd)
                     {
@@ -185,19 +185,19 @@ namespace Interpreter.Interprete
                         bool convert = false;
                         try
                         {
-                            k = (int)EvaluateExpression(sizeCmd.Size);
+                            k = (int)EvaluateExpression(sizeCmd.Size, sizeCmd.Line);
                             convert = true;
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( sizeCmd.Line, ErrorCode.ExecusionTime, $"Parameters in Size are not corrects. line:"));
                         }
 
                         if (convert)
                         {
                             if (k <= 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Brush size must be positive. Received {k}."));
+                                ErrorList.errors.Add(new CompilingError( sizeCmd.Line, ErrorCode.Unexpected, $"Brush size must be positive. Received {k}. line:"));
                             }
                             else
                             {
@@ -214,25 +214,25 @@ namespace Interpreter.Interprete
 
                         try
                         {
-                            dirX = (int)EvaluateExpression(drawLineCmd.DirX);
-                            dirY = (int)EvaluateExpression(drawLineCmd.DirY);
-                            distance = (int)EvaluateExpression(drawLineCmd.Distance);
+                            dirX = (int)EvaluateExpression(drawLineCmd.DirX, drawLineCmd.Line);
+                            dirY = (int)EvaluateExpression(drawLineCmd.DirY, drawLineCmd.Line);
+                            distance = (int)EvaluateExpression(drawLineCmd.Distance, drawLineCmd.Line);
                             convert = true;
 
                             if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                ErrorList.errors.Add(new CompilingError( drawLineCmd.Line, ErrorCode.Unexpected, $"Parameters 'directions' in DrawLine are not correct. line:"));
                                 convert = false;
                             }
                             if (distance < 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'distance' can not be negative"));
+                                ErrorList.errors.Add(new CompilingError( drawLineCmd.Line, ErrorCode.Unexpected, $"Parameter 'distance' in DrawLine can not be negative. line:"));
                                 convert = false;
                             }
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not correct"));
+                            ErrorList.errors.Add(new CompilingError( drawLineCmd.Line, ErrorCode.ExecusionTime, $"Parameters in DrawLine are not correct. line:"));
                         }
 
                         if (convert) { DrawLine(_wallEX, _wallEY, dirX, dirY, distance); }
@@ -246,26 +246,26 @@ namespace Interpreter.Interprete
 
                         try
                         {
-                            dirX = (int)EvaluateExpression(drawCircleCmd.DirX);
-                            dirY = (int)EvaluateExpression(drawCircleCmd.DirY);
-                            radius = (int)EvaluateExpression(drawCircleCmd.Radius);
+                            dirX = (int)EvaluateExpression(drawCircleCmd.DirX, drawCircleCmd.Line);
+                            dirY = (int)EvaluateExpression(drawCircleCmd.DirY, drawCircleCmd.Line);
+                            radius = (int)EvaluateExpression(drawCircleCmd.Radius, drawCircleCmd.Line);
                             convert = true;
 
                             if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                ErrorList.errors.Add(new CompilingError( drawCircleCmd.Line, ErrorCode.Unexpected, $"Parameters 'directions' in DrawCircle are not correct. line:"));
                                 convert = false;
                             }
 
                             if (radius < 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'radius' can not be negative"));
+                                ErrorList.errors.Add(new CompilingError( drawCircleCmd.Line, ErrorCode.Unexpected, $"Parameter 'radius' in DrawCircle can not be negative. line:"));
                                 convert = false;
                             }
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError(drawCircleCmd.Line, ErrorCode.ExecusionTime, $"Parameters in DrawCircle are not corrects. line:"));
                         }
 
                         if (convert) { DrawCircle(dirX, dirY, radius); }
@@ -281,34 +281,34 @@ namespace Interpreter.Interprete
 
                         try
                         {
-                            dirX = (int)EvaluateExpression(drawRectangleCmd.DirX);
-                            dirY = (int)EvaluateExpression(drawRectangleCmd.DirY);
-                            distance = (int)EvaluateExpression(drawRectangleCmd.Distance);
-                            width = (int)EvaluateExpression(drawRectangleCmd.Width);
-                            height = (int)EvaluateExpression(drawRectangleCmd.Height);
+                            dirX = (int)EvaluateExpression(drawRectangleCmd.DirX, drawRectangleCmd.Line);
+                            dirY = (int)EvaluateExpression(drawRectangleCmd.DirY, drawRectangleCmd.Line);
+                            distance = (int)EvaluateExpression(drawRectangleCmd.Distance, drawRectangleCmd.Line);
+                            width = (int)EvaluateExpression(drawRectangleCmd.Width, drawRectangleCmd.Line);
+                            height = (int)EvaluateExpression(drawRectangleCmd.Height, drawRectangleCmd.Line);
                             convert = true;
 
                             if (dirX > 1 || dirY > 1 || dirX < -1 || dirY < -1)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'directions' are not correct"));
+                                ErrorList.errors.Add(new CompilingError( drawRectangleCmd.Line, ErrorCode.Unexpected, $"Parameters 'directions' in DrawRectangle are not correct. line:"));
                                 convert = false;
                             }
 
                             if (distance < 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameter 'distance' can not be negative"));
+                                ErrorList.errors.Add(new CompilingError( drawRectangleCmd.Line, ErrorCode.Unexpected, $"Parameter 'distance' in DrawRectangle can not be negative. line"));
                                 convert = false;
                             }
 
                             if (width < 0 || height < 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters 'width' and 'height' can not be negative"));
+                                ErrorList.errors.Add(new CompilingError( drawRectangleCmd.Line, ErrorCode.Unexpected, $"Parameters 'width' or/and 'height' in DrawRectangle can not be negative. line:"));
                                 convert = false;
                             }
                         }
                         catch
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Parameters are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( drawRectangleCmd.Line, ErrorCode.ExecusionTime, $"Parameters in DrawRectangle are not corrects. line:"));
                         }
 
                         if (convert) { DrawRectangle(dirX, dirY, distance, width, height); }
@@ -319,7 +319,7 @@ namespace Interpreter.Interprete
                     }
                     else if (statement is AssignmentStatement assignStmt)
                     {
-                        object value = EvaluateExpression(assignStmt.Expression);
+                        object value = EvaluateExpression(assignStmt.Expression, assignStmt.Line);
                         bool convert = false;
                         if (value != null)
                         {
@@ -327,7 +327,7 @@ namespace Interpreter.Interprete
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Expression are not corrects"));
+                            ErrorList.errors.Add(new CompilingError( assignStmt.Line, ErrorCode.ExecusionTime, $"Assigment Expression is not corrects. line:"));
                         }
                         if (convert) { LocalMemory._variables[assignStmt.VariableName] = value; }
                     }
@@ -335,11 +335,11 @@ namespace Interpreter.Interprete
                     {
                         if (!LocalMemory._labels.ContainsKey(gotoStmt.LabelName))
                         {
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Compilation Error: Label '{gotoStmt.LabelName}' not found."));
+                            ErrorList.errors.Add(new CompilingError( gotoStmt.Line, ErrorCode.Unexpected, $"Label '{gotoStmt.LabelName}' not found. line:"));
                         }
                         else
                         {
-                            bool conditionResult = (bool)EvaluateExpression(gotoStmt.Condition);
+                            bool conditionResult = (bool)EvaluateExpression(gotoStmt.Condition, gotoStmt.Line);
                             if (conditionResult)
                             {
                                 i = LocalMemory._labels[gotoStmt.LabelName]; // Jump to label
@@ -349,13 +349,13 @@ namespace Interpreter.Interprete
                     else if (statement is LabelStatement) { }
                     else
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown statement type: {statement.GetType().Name}"));
+                        ErrorList.errors.Add(new CompilingError(i, ErrorCode.Unexpected, $"Unknown statement type: {statement.GetType().Name}. line:"));
                     }
                 }
             }
         }
 
-        private object EvaluateExpression(AstNode expression)
+        private object EvaluateExpression(AstNode expression, int line)
         {
             if (expression is LiteralExpression<int> intLiteral)
             {
@@ -371,13 +371,13 @@ namespace Interpreter.Interprete
                 {
                     return value;
                 }
-                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Variable '{varExpr.VariableName}' not defined."));
+                ErrorList.errors.Add(new CompilingError( varExpr.Line, ErrorCode.ExecusionTime, $"Variable '{varExpr.VariableName}' not defined. line:"));
                 return null;
             }
             else if (expression is BinaryOp binaryOp)
             {
-                object left = EvaluateExpression(binaryOp.Left);
-                object right = EvaluateExpression(binaryOp.Right);
+                object left = EvaluateExpression(binaryOp.Left, binaryOp.Line);
+                object right = EvaluateExpression(binaryOp.Right, binaryOp.Line);
 
                 if (left == null || right == null) { return null; }
 
@@ -393,7 +393,7 @@ namespace Interpreter.Interprete
                         case "/":
                             if ((dynamic)right == 0)
                             {
-                                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Division by zero."));
+                                ErrorList.errors.Add(new CompilingError( binaryOp.Line, ErrorCode.ExecusionTime, $"Division by zero. line:"));
                             }
                             else
                             {
@@ -411,44 +411,56 @@ namespace Interpreter.Interprete
                         case "||": return (bool)left || (bool)right;
 
                         default:
-                            ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown operator: {binaryOp.Operator}"));
+                            ErrorList.errors.Add(new CompilingError( binaryOp.Line, ErrorCode.Unexpected, $"Unknown operator: {binaryOp.Operator}. line:"));
                             return null;
                     }
 
                 }
                 else
                 {
-                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.Invalid, $"Unknown operator: {binaryOp.Operator}"));
+                    ErrorList.errors.Add(new CompilingError( binaryOp.Line, ErrorCode.Semantic, $"Invalid operation: {left} {binaryOp.Operator} {right} at line:"));
                     return null;
                 }
 
             }
             else if (expression is UnaryOp unaryop)
             {
-                object right = EvaluateExpression(unaryop.Right);
+                object right = EvaluateExpression(unaryop.Right, line);
 
-                switch (unaryop.Operator)
+                if (right == null) { return null; }
+
+                bool CheckSemantic = unaryop.CheckSemantic();
+
+                if (CheckSemantic)
                 {
-                    case "~": return -(dynamic)right;
-                    case "!": return !(bool)right;
-                    default :
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown operator: {unaryop.Operator}"));
-                        break;
+                    switch (unaryop.Operator)
+                    {
+                        case "~": return -(dynamic)right;
+                        case "!": return !(bool)right;
+                        default:
+                            ErrorList.errors.Add(new CompilingError(unaryop.Line, ErrorCode.Unexpected, $"Unknown operation: {unaryop.Operator} at line:"));
+                            break;
+                    }
+                }
+                else
+                {
+                    ErrorList.errors.Add(new CompilingError(unaryop.Line, ErrorCode.Semantic, $"Invalid operation: {unaryop.Operator} {right} at line:"));
+                    return null;
                 }
             }
             else if (expression is FunctionCallExpression funcCall)
             {
-                List<object> evaluatedArgs = funcCall.Arguments.Select(arg => EvaluateExpression(arg)).ToList();
-                return CallFunction(funcCall.FunctionName, evaluatedArgs);
+                List<object> evaluatedArgs = funcCall.Arguments.Select(arg => EvaluateExpression(arg, line)).ToList();
+                return CallFunction(funcCall.FunctionName, evaluatedArgs, funcCall.Line);
             }
             else
             {
-                ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unsupported expression type: {expression.GetType().Name}"));
+                ErrorList.errors.Add(new CompilingError( line, ErrorCode.Unexpected, $"Unsupported expression type: {expression.GetType().Name}. line:"));
             }
             return null;
         }
 
-        private object CallFunction(string functionName, List<object> args)
+        private object CallFunction(string functionName, List<object> args, int Line)
         {
             switch (functionName)
             {
@@ -459,27 +471,27 @@ namespace Interpreter.Interprete
                 case "GetColorCount":
                     if (args.Count != 5 || !(args[0] is string colorName) || !(args[1] is int x1) || !(args[2] is int y1) || !(args[3] is int x2) || !(args[4] is int y2))
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Invalid arguments for GetColorCount."));
+                        ErrorList.errors.Add(new CompilingError( Line, ErrorCode.Unexpected, "Invalid arguments for GetColorCount. line:"));
                     }
                     else
                     {
-                        return GetColorCount(colorName, x1, y1, x2, y2);
+                        return GetColorCount(colorName, x1, y1, x2, y2, Line);
                     } break;
 
                 case "IsBrushColor":
                     if (args.Count != 1 || !(args[0] is string colorStr))
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Invalid arguments for IsBrushColor."));
+                        ErrorList.errors.Add(new CompilingError( Line, ErrorCode.Unexpected, "Invalid arguments for IsBrushColor. line:"));
                     }
                     else
                     {
-                        return _brushColor == ParseColor(colorStr)? 1 : 0;
+                        return _brushColor == ParseColor(colorStr, Line)? 1 : 0;
                     } break;
                         
                 case "IsBrushSize":
                     if (args.Count != 1 || !(args[0] is int size))
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Invalid arguments for IsBrushSize."));
+                        ErrorList.errors.Add(new CompilingError(Line, ErrorCode.Unexpected, "Invalid arguments for IsBrushSize. line:"));
                     }
                     else
                     {
@@ -489,21 +501,21 @@ namespace Interpreter.Interprete
                 case "IsCanvasColor":
                     if (args.Count != 3 || !(args[0] is string colorString) || !(args[1] is int vertical) || !(args[2] is int horizontal))
                     {
-                        ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, "Invalid arguments for IsCanvasColor."));
+                        ErrorList.errors.Add(new CompilingError(Line, ErrorCode.Unexpected, "Invalid arguments for IsCanvasColor. line:"));
                     }
                     else
                     {
-                        return IsCanvasColor(colorString, vertical, horizontal);
+                        return IsCanvasColor(colorString, vertical, horizontal, Line);
                     } break;
                         
                 default:
-                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Unknown function: {functionName}"));
+                    ErrorList.errors.Add(new CompilingError(Line, ErrorCode.Unexpected, $"Unknown function: {functionName}. line:"));
                     break;
             }
             return null;
         }
 
-        private Color ParseColor(string colorName)
+        private Color ParseColor(string colorName, int Line)
         {
             switch (colorName.ToLower())
             {
@@ -524,7 +536,7 @@ namespace Interpreter.Interprete
                 case "white": return Color.White;
                 case "transparent": return Color.Transparent;
                 default:
-                    ErrorList.errors.Add(new CompilingError(new Lexer.Localization(), ErrorCode.ExecusionTime, $"Semantic Error: Unknown color '{colorName}', Transparent set as default."));
+                    ErrorList.errors.Add(new CompilingError(Line, ErrorCode.Semantic, $"Unknown color '{colorName}', Transparent set as default. line:"));
                     break;
             }
             return Color.Transparent;
@@ -668,9 +680,9 @@ namespace Interpreter.Interprete
             return Math.Round(Math.Sqrt(Y2),3) >= (int)Math.Sqrt(Y2) + 0.5? (int)Math.Sqrt(Y2)+1: (int)Math.Sqrt(Y2);
         } 
 
-        private int GetColorCount(string colorName, int x1, int y1, int x2, int y2)
+        private int GetColorCount(string colorName, int x1, int y1, int x2, int y2, int Line)
         {
-            Color targetColor = ParseColor(colorName);
+            Color targetColor = ParseColor(colorName, Line);
             int count = 0;
 
             int minX = Math.Min(x1, x2);
@@ -697,9 +709,9 @@ namespace Interpreter.Interprete
             return count;
         }
 
-        private int IsCanvasColor(string colorName, int vertical, int horizontal)
+        private int IsCanvasColor(string colorName, int vertical, int horizontal, int Line)
         {
-            Color targetColor = ParseColor(colorName);
+            Color targetColor = ParseColor(colorName, Line);
             int targetX = _wallEX + horizontal;
             int targetY = _wallEY + vertical;
 

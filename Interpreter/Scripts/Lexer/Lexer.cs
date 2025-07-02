@@ -16,15 +16,12 @@ namespace Interpreter.Lexer
         private int current;
         private int start;
         private int lineNumber;
-        private int column;
-        private string? file;
 
-        public Lexer(string input, string? file = null)
+        public Lexer(string input)
         {
             this.input = input;
             current = 0;
             lineNumber = 1;
-            this.file = file;
         }
 
         public IEnumerable<Token> Tokenize()
@@ -33,14 +30,14 @@ namespace Interpreter.Lexer
             // Example:
             while (current < input.Length)
             {
+                start = current;
                 char currentChar = input[current];
-                column = start = current;
 
                 if (char.IsWhiteSpace(currentChar))
                 {
                     if (currentChar == '\n')
                     {
-                        yield return new Token(TokenType.NewLine, "\n", new Localization(lineNumber, column, file));
+                        yield return new Token(TokenType.NewLine, "\n", lineNumber);
                         lineNumber++;
                     }
                     current++;
@@ -53,17 +50,17 @@ namespace Interpreter.Lexer
                     string identifier = "";
                     while (current < input.Length && (char.IsLetterOrDigit(input[current]) || input[current] == '-'))
                     {
-                        if (input[current] == '-' && IsKeyword(identifier)) yield return new Token(TokenType.Keyword, identifier, new Localization(lineNumber, column, file));
+                        if (input[current] == '-' && IsKeyword(identifier)) yield return new Token(TokenType.Keyword, identifier, lineNumber);
                         identifier += input[current];
                         current++;
                     }
                     if (IsKeyword(identifier))
                     {
-                        yield return new Token(TokenType.Keyword, identifier, new Localization(lineNumber, column, file));
+                        yield return new Token(TokenType.Keyword, identifier, lineNumber);
                     }
                     else
                     {
-                        yield return new Token(TokenType.Identifier, identifier, new Localization(lineNumber, column, file));
+                        yield return new Token(TokenType.Identifier, identifier, lineNumber);
                     }
                     continue;
                 }
@@ -78,76 +75,76 @@ namespace Interpreter.Lexer
                         while (char.IsDigit(LookAhead())) Advance();
                     }
 
-                    yield return new Token(TokenType.Number, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                    yield return new Token(TokenType.Number, input.Substring(start, current - start + 1), lineNumber);
                 }
                 else
                 {
                     switch (currentChar) //Handle strings, operators, etc.
                     {
 
-                        case '(': yield return new Token(TokenType.Left_Parentesis, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
-                        case ')': yield return new Token(TokenType.Right_Parentesis, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
-                        case '[': yield return new Token(TokenType.Left_Clasp, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
-                        case ']': yield return new Token(TokenType.Right_Clasp, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
+                        case '(': yield return new Token(TokenType.Left_Parentesis, input.Substring(start, current - start + 1), lineNumber); break;
+                        case ')': yield return new Token(TokenType.Right_Parentesis, input.Substring(start, current - start + 1), lineNumber); break;
+                        case '[': yield return new Token(TokenType.Left_Clasp, input.Substring(start, current - start + 1), lineNumber); break;
+                        case ']': yield return new Token(TokenType.Right_Clasp, input.Substring(start, current - start + 1), lineNumber); break;
 
-                        case ',': yield return new Token(TokenType.Coma, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
+                        case ',': yield return new Token(TokenType.Coma, input.Substring(start, current - start + 1), lineNumber); break;
 
-                        case '-': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
+                        case '-': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber); break;
 
-                        case '+': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
-                        case ';': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file)); break;
+                        case '+': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber); break;
+                        case ';': yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber); break;
 
                         case '*':
                             Match('*');
-                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             break;
 
                         case '!':
                             Match('=');
-                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             break;
 
                         case '=':
                             Match('=');
-                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             break;
 
                         case '<':
                             if (Match('='))
                             {
-                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             }
                             else
                             {
                                 Match('-');
-                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             }
                             break;
 
                         case '>':
                             Match('=');
-                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                            yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             break;
 
                         case '&':
                             if (Match('&'))
                             {
-                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             }
                             else
                             {
-                                ErrorList.errors.Add(new CompilingError(new Localization(lineNumber, start, file), ErrorCode.Invalid, "Expected && but got & at line"));
+                                ErrorList.errors.Add(new CompilingError( lineNumber, ErrorCode.Unexpected, "Expected && but got & at line:"));
                             }
                             break;
 
                         case '|':
                             if (Match('|'))
                             {
-                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             }
                             else
                             {
-                                ErrorList.errors.Add(new CompilingError(new Localization(lineNumber, start, file), ErrorCode.Invalid, "Expected || but got | at line"));
+                                ErrorList.errors.Add(new CompilingError(lineNumber, ErrorCode.Unexpected, "Expected || but got | at line:"));
                             }
                             break;
 
@@ -160,7 +157,7 @@ namespace Interpreter.Lexer
                             }
                             else
                             {
-                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), new Localization(lineNumber, column, file));
+                                yield return new Token(TokenType.Operator, input.Substring(start, current - start + 1), lineNumber);
                             }
                             break;
 
@@ -169,11 +166,11 @@ namespace Interpreter.Lexer
                             string val = input.Substring(start + 1, current - start);
                             Advance();
                             start++;
-                            yield return new Token(TokenType.String, input.Substring(start, current - start), new Localization(lineNumber, column, file));
+                            yield return new Token(TokenType.String, input.Substring(start, current - start), lineNumber);
                             break;
 
                         default:
-                            ErrorList.errors.Add(new CompilingError(new Localization(lineNumber, start, file), ErrorCode.Invalid, "Invalid character at line"));
+                            ErrorList.errors.Add(new CompilingError(lineNumber, ErrorCode.Unexpected, "Invalid character at line:"));
                             break;
                     }
                 
@@ -182,6 +179,7 @@ namespace Interpreter.Lexer
 
                 void Tostring()
                 {
+                    int newlineNumber = lineNumber;
                     while (LookAhead() != '"' && !IsTheEnd())
                     {
                         if(LookAhead() == '\n') lineNumber++;
@@ -190,7 +188,7 @@ namespace Interpreter.Lexer
 
                     if (IsTheEnd())
                     {
-                        ErrorList.errors.Add(new CompilingError(new Localization(lineNumber, start, file), ErrorCode.Invalid, "Endless string at line"));
+                        ErrorList.errors.Add(new CompilingError(newlineNumber, ErrorCode.Unexpected, "Endless string at line:"));
                     }
                 }
 
@@ -226,7 +224,7 @@ namespace Interpreter.Lexer
                 // ... more parsing rules for numbers, strings, operators
                 current++; // Advance if not handled by specific rules
             }
-            yield return new Token(TokenType.EOF, "", new Localization(lineNumber, column, file));
+            yield return new Token(TokenType.EOF, "", lineNumber);
         }
 
         private bool IsKeyword(string value)

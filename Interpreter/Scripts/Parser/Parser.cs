@@ -32,7 +32,7 @@ namespace Interpreter.Parser
             }
             else
             {
-                ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.ExecusionTime, "Unexpected TokenType at line"));
+                ErrorList.errors.Add(new CompilingError( _currentToken.Line, ErrorCode.Unexpected, "Unexpected TokenType at line:"));
             }
             return false;
         }
@@ -59,11 +59,11 @@ namespace Interpreter.Parser
 
                         if (a && b && c && x != null && y != null)
                         {
-                            program.Statements.Add(new SpawnCommand(x, y));
+                            program.Statements.Add(new SpawnCommand(x, y, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Spawn"));
+                            ErrorList.errors.Add(new CompilingError( _currentToken.Line, ErrorCode.Unexpected, "Invalid call of Spawn at line:"));
                         }
                             
                     }
@@ -79,11 +79,11 @@ namespace Interpreter.Parser
 
                         if (a && b && c && x != null && y != null)
                         {
-                            program.Statements.Add(new ReSpawnCommand(x, y));
+                            program.Statements.Add(new ReSpawnCommand(x, y, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of ReSpawn"));
+                            ErrorList.errors.Add(new CompilingError( _currentToken.Line, ErrorCode.Unexpected, "Invalid call of ReSpawn at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.Color.ToString())
@@ -95,11 +95,11 @@ namespace Interpreter.Parser
                         bool b = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && color != null)
                         {
-                            program.Statements.Add(new ColorCommand(color));
+                            program.Statements.Add(new ColorCommand(color, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Color"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of Color at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.Size.ToString())
@@ -110,11 +110,11 @@ namespace Interpreter.Parser
                         bool b = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && size != null)
                         {
-                            program.Statements.Add(new SizeCommand(size));
+                            program.Statements.Add(new SizeCommand(size, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Size"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of Size at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.DrawLine.ToString())
@@ -129,11 +129,11 @@ namespace Interpreter.Parser
                         bool d = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && c && d && dirx != null && diry != null && distance != null)
                         {
-                            program.Statements.Add(new DrawLineCommand(dirx, diry, distance));
+                            program.Statements.Add(new DrawLineCommand(dirx, diry, distance, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Drawline"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of Drawline at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.DrawCircle.ToString())
@@ -148,11 +148,11 @@ namespace Interpreter.Parser
                         bool d = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && c && d && dirx != null && diry != null && radius != null)
                         {
-                            program.Statements.Add(new DrawCircleCommand(dirx, diry, radius));
+                            program.Statements.Add(new DrawCircleCommand(dirx, diry, radius, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of DrawCircle"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of DrawCircle at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.DrawRectangle.ToString())
@@ -171,11 +171,11 @@ namespace Interpreter.Parser
                         bool f = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && c && d && e && f && dirx != null && diry != null && distance != null && width != null && height != null)
                         {
-                            program.Statements.Add(new DrawRectangleCommand(dirx, diry, distance, width, height));
+                            program.Statements.Add(new DrawRectangleCommand(dirx, diry, distance, width, height, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of DrawRectangle"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of DrawRectangle at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.Fill.ToString())
@@ -185,11 +185,11 @@ namespace Interpreter.Parser
                         bool b = Eat(TokenType.Right_Parentesis);
                         if (a && b)
                         {
-                            program.Statements.Add(new FillCommand());
+                            program.Statements.Add(new FillCommand(_currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of Fill"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of Fill at line:"));
                         }
                     }
                     else if (_currentToken.Value == Keys.GoTo.ToString())
@@ -204,16 +204,16 @@ namespace Interpreter.Parser
                         bool e = Eat(TokenType.Right_Parentesis); // Eat ")"
                         if (a && b && c && d && e)
                         {
-                            program.Statements.Add(new GoToStatement(labelname, condition));
+                            program.Statements.Add(new GoToStatement(labelname, condition, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "Invalid call of GoTo"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Invalid call of GoTo at line:"));
                         }
                     }
                     else
                     {
-                        ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.ExecusionTime, "Keyword not defined at line"));
+                        ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, "Keyword not defined at line:"));
                     }
                 
                 }
@@ -231,21 +231,21 @@ namespace Interpreter.Parser
                         Expression expr = ParseExpression();
                         if (expr != null)
                         {
-                            program.Statements.Add(new AssignmentStatement(identifier, expr));
+                            program.Statements.Add(new AssignmentStatement(identifier, expr, _currentToken.Line));
                         }
                         else
                         {
-                            ErrorList.errors.Add(new CompilingError(new Localization(), ErrorCode.Invalid, "No value is asignate"));
+                            ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.ExecusionTime, "No value is asignate. line:"));
                         }
                     }
                     else if (_currentToken.Type == TokenType.NewLine || _currentToken.Type == TokenType.EOF)
                     {
                         // It's a label
-                        program.Statements.Add(new LabelStatement(identifier));
+                        program.Statements.Add(new LabelStatement(identifier, _currentToken.Line));
                     }
                     else
                     {
-                        ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} after identifier {identifier} at line"));
+                        ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, $"Unexpected token {_currentToken.Value} after identifier {identifier} at line:"));
                     }
                 }
                 else if (_currentToken.Type == TokenType.NewLine)
@@ -254,12 +254,12 @@ namespace Interpreter.Parser
                 }
                 else if (_currentToken.Type == TokenType.Right_Parentesis || _currentToken.Type == TokenType.Right_Clasp)
                 {
-                    ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} at line"));
+                    ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, $"Unexpected token {_currentToken.Value} at line:"));
                     Eat(_currentToken.Type);
                 }
                 else
                 {
-                    ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} at line"));
+                    ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, $"Unexpected token {_currentToken.Value} at line:"));
                     Eat(_currentToken.Type);
                 }
 
@@ -275,7 +275,7 @@ namespace Interpreter.Parser
 
             if (_currentToken.Type == TokenType.Number || _currentToken.Type == TokenType.String || _currentToken.Type == TokenType.Boolean)
             {
-                ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} at line"));
+                ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, $"Unexpected Token {_currentToken.Value} at line:"));
             }
 
             return expr; // Start with lowest precedence
@@ -291,7 +291,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseComparison1();
-                expr = new BinEqualOpExpression(expr, op, right);
+                expr = new BinEqualOpExpression(expr, op, right, _currentToken.Line);
             }
             return expr;
         }
@@ -307,7 +307,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseAdditive();
-                expr = new BinCompExpression(expr, op, right);
+                expr = new BinCompExpression(expr, op, right, _currentToken.Line);
             }
             return expr;
         }
@@ -320,7 +320,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseMultiplicative();
-                expr = new BinAritExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right, _currentToken.Line);
             }
             return expr;
         }
@@ -333,7 +333,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseMultiplicative2();
-                expr = new BinAritExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right, _currentToken.Line);
             }
             return expr;
         }
@@ -346,7 +346,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression right = ParseNegative();
-                expr = new BinAritExpression(expr, op, right);
+                expr = new BinAritExpression(expr, op, right, _currentToken.Line);
             }
             return expr;
         }
@@ -357,7 +357,7 @@ namespace Interpreter.Parser
             {
                 Eat(TokenType.Operator);
                 Expression expr = ParseOposite();
-                return new UnaryAritmeticOpExpression(expr, "~");
+                return new UnaryAritmeticOpExpression(expr, "~", _currentToken.Line);
             }
             else
             {
@@ -372,7 +372,7 @@ namespace Interpreter.Parser
                 string op = _currentToken.Value;
                 Eat(TokenType.Operator);
                 Expression expr = ParseParentesis();
-                return new UnaryBooleanOpExpression(expr, op);
+                return new UnaryBooleanOpExpression(expr, op, _currentToken.Line);
             }
             else
             {
@@ -416,13 +416,13 @@ namespace Interpreter.Parser
             {
                 int value = int.Parse(_currentToken.Value);
                 Eat(TokenType.Number);
-                return new LiteralExpression<int>(value);
+                return new LiteralExpression<int>(value, _currentToken.Line);
             }
             else if (_currentToken.Type == TokenType.String)
             {
                 string value = _currentToken.Value;
                 Eat(TokenType.String);
-                return new LiteralExpression<string>(value);
+                return new LiteralExpression<string>(value, _currentToken.Line);
             }
             else if (_currentToken.Type == TokenType.Identifier)
             {
@@ -446,13 +446,13 @@ namespace Interpreter.Parser
                         }
                     }
                     Eat(TokenType.Right_Parentesis); // Eat ")"
-                    return new FunctionCallExpression(identifier, args);
+                    return new FunctionCallExpression(identifier, args, _currentToken.Line);
                 }
-                return new VariableExpression(identifier);
+                return new VariableExpression(identifier, _currentToken.Line);
             }
             else
             {
-                ErrorList.errors.Add(new CompilingError(_currentToken.Codelocation, ErrorCode.Invalid, $"Unexpected token {_currentToken.Value} expression at line"));
+                ErrorList.errors.Add(new CompilingError(_currentToken.Line, ErrorCode.Unexpected, $"Unexpected token {_currentToken.Value} expression at line:"));
             }
             return null;
         }

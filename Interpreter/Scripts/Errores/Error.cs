@@ -13,9 +13,9 @@ namespace Interpreter.Errores
 
         public string Argument { get; private set; }
 
-        public Localization Location { get; private set; }
+        public int Location { get; private set; }
 
-        public CompilingError(Localization location, ErrorCode code, string argument)
+        public CompilingError(int location, ErrorCode code, string argument)
         {
             this.Code = code;
             this.Argument = argument;
@@ -25,12 +25,10 @@ namespace Interpreter.Errores
 
     public enum ErrorCode
     {
-        None,
-        Expected,
-        Invalid,
+        Unexpected,
+        Semantic,
+        Sintactic,
         ExecusionTime,
-
-        Unknown,
     }
 
     public static class ErrorList

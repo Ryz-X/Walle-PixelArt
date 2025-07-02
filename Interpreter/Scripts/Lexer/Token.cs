@@ -25,25 +25,13 @@ namespace Interpreter.Lexer
     {
         public TokenType Type { get; }
         public string Value { get; }
-        public Localization Codelocation { get; }
-        public Token(TokenType type, string value, Localization codelocation)
+        public int Line { get; }
+        public Token(TokenType type, string value, int line)
         {
             Type = type;
             Value = value;
-            Codelocation = codelocation;
+            Line = line;
         }
     }
 
-    public struct Localization
-    {
-        public int line, column;
-        public string? file;
-
-        public Localization(int line, int column, string? file = null)
-        {
-            this.line = line;
-            this.column = column;
-            this.file = file;
-        }
-    }
 }

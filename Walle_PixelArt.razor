@@ -74,6 +74,12 @@ Welcome to your new app.
 
 <! -- Editor __ >
 <div style="display: flex;">
+    <div style="width: 30px; text-align: right; padding-right: 5px; color: gray;">
+        @for (int i = 1; i <= _code.Split('\n').Length; i++)
+        {
+            <div>@i</div>
+        }
+    </div>
     <textarea @bind="_code" @bind:event="oninput" style="flex-grow: 1; height: 400px; font-family: monospace;"></textarea>
 </div>
 
@@ -298,7 +304,21 @@ Welcome to your new app.
                 else
                 if (_canvas[i, j] == Color.Purple) { _pixels[i, j] = "purple"; }
                 else
+                if (_canvas[i, j] == Color.Pink) { _pixels[i, j] = "pink"; }
+                else
+                if (_canvas[i, j] == Color.Cyan) { _pixels[i, j] = "cyan"; }
+                else
+                if (_canvas[i, j] == Color.Maroon) { _pixels[i, j] = "maroon"; }
+                else
+                if (_canvas[i, j] == Color.Crimson) { _pixels[i, j] = "crimson"; }
+                else
+                if (_canvas[i, j] == Color.DarkBlue) { _pixels[i, j] = "darkblue"; }
+                else
+                if (_canvas[i, j] == Color.Gold) { _pixels[i, j] = "gold"; }
+                else
                 if (_canvas[i, j] == Color.Black) { _pixels[i, j] = "black"; }
+                else
+                if (_canvas[i, j] == Color.Gray) { _pixels[i, j] = "gray"; }
                 else
                 if (_canvas[i, j] == Color.White) { _pixels[i, j] = "white"; }
                 else
@@ -310,7 +330,7 @@ Welcome to your new app.
         if (ErrorList.errors.Count > 0)
         {
             _errorMessage = $"It is {ErrorList.errors.Count} Errors";
-            _runtimeErrors = ErrorList.errors.Select(args => $"{args.Code.ToString()} Error: {args.Argument} {args.Location.line}").ToList();
+            _runtimeErrors = ErrorList.errors.Select(args => $"{args.Code.ToString()} Error: {args.Argument} {args.Location}").ToList();
         }
 
     }

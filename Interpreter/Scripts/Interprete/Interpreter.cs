@@ -23,6 +23,8 @@ namespace Interpreter.Interprete
         private int _wallEX, _wallEY;
         private Color _brushColor;
         private int _brushSize;
+        private DateTime Time1;
+        private int MaxTime = 30;
 
         public Interpreter(ProgramNode program, int initialCanvasSize)
         {
@@ -37,6 +39,7 @@ namespace Interpreter.Interprete
             _brushColor = Color.Transparent; // Default color 
             _brushSize = 1; // Default size
             PreprocessLabels(); // Populate _labels dictionary
+            Time1 = DateTime.Now;
         }
 
         private void PreprocessLabels()
@@ -87,6 +90,13 @@ namespace Interpreter.Interprete
 
             for (int i = 0; i < _program.Statements.Count; i++)
             {
+                TimeSpan lapse = DateTime.Now - Time1;
+                if (lapse.Seconds >= MaxTime)
+                {
+                    ErrorList.errors.Add(new CompilingError(lapse.Seconds, ErrorCode.ExecusionTime, $"Time is too long, unsuported management, time in seconds: "));
+                    break;
+                }
+
                 AstNode statement = _program.Statements[i];
 
                 if (!spawnFound)
@@ -124,7 +134,7 @@ namespace Interpreter.Interprete
                     }
                     else
                     {
-                        ErrorList.errors.Add(new CompilingError( i, ErrorCode.Unexpected, "Every valid code must start with a Spawn command. line:"));
+                        ErrorList.errors.Add(new CompilingError( statement.Line, ErrorCode.Unexpected, "Every valid code must start with a Spawn command. line:"));
                     }
                 }
                 else

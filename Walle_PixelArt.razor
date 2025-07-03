@@ -78,9 +78,10 @@ Welcome to your new app.
         @for (int i = 1; i <= _code.Split('\n').Length; i++)
         {
             <div>@i</div>
+            EditorScale(i);
         }
     </div>
-    <textarea @bind="_code" @bind:event="oninput" style="flex-grow: 1; height: 400px; font-family: monospace;"></textarea>
+    <textarea @bind="_code" @bind:event="oninput" style="flex-grow: 1; height: @EditorHeight; font-family: monospace;"></textarea>
 </div>
 
 
@@ -156,6 +157,8 @@ Welcome to your new app.
 
     private string[,] _pixels;
     private Color[,] _canvas;
+
+    private string EditorHeight = "375px";
 
     protected override void OnInitialized()
     {
@@ -241,6 +244,19 @@ Welcome to your new app.
         _code = "";
     }
 
+    private void EditorScale(int i)
+    {
+        if(i <= 15)
+        {
+            EditorHeight = "375px";
+        }
+        else
+        {
+            int dif = i - 15;
+            int scale = 375 + dif * 25;
+            EditorHeight = scale.ToString() + "px";
+        }
+    }
 
     //Load
     private async Task LoadCodeFromFile(InputFileChangeEventArgs e)
